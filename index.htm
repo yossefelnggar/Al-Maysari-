@@ -3,41 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مسابقة المسيري القرآنية</title>
+    <title>مسابقة المسيري القرآنية 2026</title>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyC1F8gKvyvyYYr0pYjIabhulUdP720_Eig",
+            authDomain: "my-chat-ad03e.firebaseapp.com",
+            databaseURL: "https://my-chat-ad03e-default-rtdb.firebaseio.com",
+            projectId: "my-chat-ad03e",
+            storageBucket: "my-chat-ad03e.firebasestorage.app",
+            messagingSenderId: "32351043149",
+            appId: "1:32351043149:web:e2dd0dd8654c1569cea604"
+        };
+        firebase.initializeApp(firebaseConfig);
+        var db = firebase.database();
+        var students = {};
+        var currentStudentId = null;
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Amiri&family=Cairo:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;900&display=swap');
+
+        :root {
+            --navy: #020617;
+            --gold: #bf953f;
+            --gold2: #fcf6ba;
+            --gold-light: #e8c96d;
+            --bg: #f1f5f9;
+            --card: #ffffff;
+            --text: #0f172a;
+            --input: #f8fafc;
+            --border: #e2e8f0;
+            --success: #059669;
+            --danger: #dc2626;
+            --shadow: 0 20px 60px rgba(0,0,0,0.12);
+        }
+        [data-theme="dark"] {
+            --bg: #050a14;
+            --card: #0d1526;
+            --text: #f1f5f9;
+            --navy: #000000;
+            --input: #111827;
+            --border: #1e293b;
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        * { box-sizing: border-box; outline: none; margin: 0; padding: 0; }
         
-        :root { --navy: #020617; --gold: #bf953f; --bg: #f1f5f9; --card: #ffffff; --text: #0f172a; --input: #f8fafc; }
-        [data-theme="dark"] { --bg: #000000; --card: #111827; --text: #f9fafb; --navy: #000000; --input: #1f2937; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow-x: hidden;
+            min-height: 100vh;
+            transition: background 0.4s, color 0.4s;
+        }
 
-        * { box-sizing: border-box; outline: none; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; text-align: center; overflow-x: hidden; }
+        /* ===== HEADER ===== */
+        header {
+            background: var(--navy);
+            padding: 50px 20px 110px;
+            border-bottom: 4px solid var(--gold);
+            border-bottom-left-radius: 80px;
+            border-bottom-right-radius: 80px;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+        header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(191,149,63,0.15) 0%, transparent 70%);
+        }
+        header::after {
+            content: '✦ ✦ ✦';
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: var(--gold);
+            letter-spacing: 12px;
+            font-size: 0.6rem;
+            opacity: 0.6;
+        }
+        header h1 {
+            font-family: 'Amiri', serif;
+            font-size: 3rem;
+            color: var(--gold);
+            position: relative;
+            text-shadow: 0 0 40px rgba(191,149,63,0.4);
+            animation: fadeDown 0.8s ease-out;
+        }
+        header p {
+            color: rgba(255,255,255,0.6);
+            margin-top: 8px;
+            font-size: 0.9rem;
+            position: relative;
+            animation: fadeDown 0.8s ease-out 0.1s both;
+        }
 
-        /* الأنيميشن الأصلي للملف */
+        /* ===== THEME BUTTON ===== */
+        .theme-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            background: var(--gold);
+            border: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            cursor: pointer;
+            color: white;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(191,149,63,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .theme-btn:active { transform: scale(0.92); }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 480px;
+            margin: -75px auto 40px;
+            padding: 0 16px;
+            position: relative;
+            z-index: 100;
+            animation: slideUp 0.7s ease-out 0.2s both;
+        }
+
+        /* ===== ADS ===== */
+        .ad-card {
+            background: var(--card);
+            border-radius: 40px;
+            border: 2px solid var(--gold);
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.6s ease-out;
+        }
+        .ad-img { width: 100%; height: 200px; object-fit: cover; display: block; }
+        .ad-body { padding: 20px 25px; }
+        .ad-body h3 { color: var(--gold); font-size: 1rem; margin-bottom: 6px; }
+        .ad-body p { font-size: 0.85rem; color: var(--text); opacity: 0.8; line-height: 1.6; }
+
+        /* ===== MAIN CARD ===== */
+        .main-card {
+            background: var(--card);
+            border-radius: 50px;
+            padding: 40px 28px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        /* ===== INPUTS ===== */
+        input, textarea {
+            width: 100%;
+            padding: 18px 20px;
+            border-radius: 25px;
+            border: 2px solid var(--border);
+            background: var(--input);
+            color: var(--text);
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-family: 'Cairo', sans-serif;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(191,149,63,0.1);
+        }
+        input[type="file"] {
+            padding: 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), #8a6e2f);
+            color: #fff;
+            width: 100%;
+            padding: 20px;
+            border-radius: 40px;
+            font-weight: 900;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-family: 'Cairo', sans-serif;
+            margin-bottom: 12px;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            box-shadow: 0 8px 25px rgba(191,149,63,0.35);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-gold::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(rgba(255,255,255,0.15), transparent);
+        }
+        .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(191,149,63,0.45); }
+        .btn-gold:active { transform: scale(0.97); }
+        .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            box-shadow: none;
+        }
+        .btn-outline:hover { background: rgba(191,149,63,0.08); }
+
+        /* ===== VIEWS ===== */
+        .view { display: none; animation: fadeIn 0.4s ease-out; }
+        .view.show { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-        .animate { animation: slideUp 0.6s ease-out forwards; }
+        @keyframes fadeDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
 
-        header { background: var(--navy); padding: 60px 20px 120px; border-bottom: 5px solid var(--gold); border-bottom-left-radius: 120px; border-bottom-right-radius: 120px; position: relative; }
-        header h1 { font-family: 'Amiri', serif; font-size: 3.5rem; color: var(--gold); margin: 0; }
+        /* ===== HOME ===== */
+        .home-title {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .home-title h3 {
+            font-family: 'Amiri', serif;
+            font-size: 1.4rem;
+            color: var(--gold);
+        }
+        .home-title p { font-size: 0.8rem; opacity: 0.6; margin-top: 4px; }
 
-        .theme-btn { position: fixed; top: 15px; left: 15px; z-index: 1000; background: var(--gold); border: none; width: 45px; height: 45px; border-radius: 15px; cursor: pointer; color: white; }
+        /* ===== SUCCESS ===== */
+        .success-box {
+            padding: 30px 20px;
+            border: 3px dashed var(--gold);
+            border-radius: 35px;
+            text-align: center;
+            animation: popIn 0.5s ease-out;
+        }
+        .success-box h2 { color: var(--gold); font-family: 'Amiri', serif; font-size: 1.6rem; }
+        .success-box p { font-size: 0.85rem; opacity: 0.7; margin: 10px 0 5px; }
+        .success-id {
+            letter-spacing: 8px;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: var(--text);
+            display: block;
+            margin: 10px 0;
+        }
+        .copy-btn {
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 8px 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            color: var(--gold);
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            transition: background 0.2s;
+            margin-top: 5px;
+        }
+        .copy-btn:hover { background: var(--border); }
 
-        .container { max-width: 480px; margin: -80px auto 0; padding: 0 20px; position: relative; z-index: 100; }
-        .main-card { background: var(--card); border-radius: 70px; padding: 45px 30px; box-shadow: 0 40px 100px rgba(0,0,0,0.2); }
+        /* ===== TRACKING STATUS ===== */
+        .status-card {
+            border-radius: 25px;
+            padding: 20px;
+            text-align: center;
+            font-weight: 700;
+            margin-top: 15px;
+            animation: popIn 0.4s ease-out;
+        }
+        .status-accepted { background: rgba(5,150,105,0.1); border: 2px solid #059669; color: #059669; }
+        .status-pending { background: rgba(191,149,63,0.1); border: 2px solid var(--gold); color: var(--gold); }
+        .status-rejected { background: rgba(220,38,38,0.1); border: 2px solid #dc2626; color: #dc2626; }
+        .status-card .creds { margin-top: 12px; padding: 12px; background: var(--input); border-radius: 15px; font-size: 0.85rem; color: var(--text); }
 
-        .ad-card { background: var(--card); border-radius: 50px; border: 2.5px solid var(--gold); margin-bottom: 25px; overflow: hidden; text-align: right; }
-        .ad-img { width: 100%; height: 220px; object-fit: cover; }
-        .ad-body { padding: 25px; }
+        /* ===== PROFILE ===== */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .u-photo {
+            width: 110px;
+            height: 110px;
+            border-radius: 35px;
+            border: 3px solid var(--gold);
+            object-fit: cover;
+            box-shadow: 0 8px 25px rgba(191,149,63,0.3);
+        }
+        .u-name { font-size: 1.3rem; font-weight: 900; margin-top: 12px; }
+        
+        /* ===== PARTS PROGRESS ===== */
+        .parts-progress {
+            background: var(--input);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+        }
+        .parts-progress label { font-size: 0.75rem; color: var(--gold); font-weight: 900; display: block; margin-bottom: 8px; }
+        .progress-bar-bg {
+            background: var(--border);
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            border-radius: 10px;
+            transition: width 1s ease-out;
+        }
+        .parts-text { font-size: 0.8rem; margin-top: 6px; opacity: 0.7; }
 
-        input { width: 100%; padding: 20px; border-radius: 30px; border: 2px solid #e5e7eb; background: var(--input); color: var(--text); text-align: center; font-size: 1.1rem; margin-bottom: 15px; font-weight: 700; }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #8a6e2f); color: #fff; width: 100%; padding: 22px; border-radius: 50px; font-weight: 900; border: none; cursor: pointer; font-size: 1.2rem; }
-        .btn-outline { background: transparent; border: 2.5px solid var(--gold); color: var(--gold); margin-top: 15px; }
+        /* ===== CHAT ===== */
+        .chat-area {
+            max-height: 280px;
+            overflow-y: auto;
+            padding: 5px;
+            margin-bottom: 12px;
+            scroll-behavior: smooth;
+        }
+        .chat-area::-webkit-scrollbar { width: 4px; }
+        .chat-area::-webkit-scrollbar-track { background: var(--input); border-radius: 4px; }
+        .chat-area::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 4px; }
 
-        .msg-bubble { background: var(--navy); color: var(--gold); padding: 15px 20px; border-radius: 25px 25px 0 25px; margin-bottom: 12px; text-align: right; position: relative; }
-        .u-photo { width: 120px; height: 120px; border-radius: 40px; border: 4px solid var(--gold); object-fit: cover; margin-bottom: 20px; }
-        .hidden { display: none !important; }
+        .msg-bubble {
+            background: var(--navy);
+            color: var(--gold2);
+            padding: 12px 16px;
+            border-radius: 20px 20px 5px 20px;
+            margin-bottom: 10px;
+            text-align: right;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            animation: popIn 0.3s ease-out;
+        }
+        .msg-bubble.sent {
+            background: linear-gradient(135deg, var(--gold), #8a6e2f);
+            color: white;
+            border-radius: 20px 20px 20px 5px;
+            text-align: left;
+        }
+        .msg-bubble .msg-time {
+            font-size: 0.65rem;
+            opacity: 0.6;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .chat-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+        .chat-input-row input {
+            flex: 1;
+            margin-bottom: 0;
+            padding: 14px 18px;
+            font-size: 0.9rem;
+        }
+        .send-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--gold), #8a6e2f);
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 15px rgba(191,149,63,0.3);
+        }
+        .send-btn:active { transform: scale(0.9); }
+
+        /* ===== LOADING SPINNER ===== */
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(30px);
+            background: var(--navy);
+            color: var(--gold);
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            z-index: 9999;
+            border: 1px solid var(--gold);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* ===== SECTION TITLE ===== */
+        .sec-title {
+            text-align: center;
+            font-family: 'Amiri', serif;
+            color: var(--gold);
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+
+        /* ===== FILE UPLOAD ===== */
+        .file-upload-label {
+            display: block;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--gold);
+            font-weight: 900;
+            margin-bottom: 6px;
+        }
+
+        /* ===== FOOTER ===== */
+        .site-footer {
+            text-align: center;
+            padding: 30px 20px 120px;
+            font-size: 0.78rem;
+            opacity: 0.7;
+        }
+        .site-footer p { margin-bottom: 8px; }
+        .dev-link {
+            display: inline-block;
+            background: var(--card);
+            border: 1px solid var(--gold);
+            border-radius: 20px;
+            padding: 8px 18px;
+            margin: 4px;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 0.78rem;
+            text-decoration: none;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .dev-link:hover { background: rgba(191,149,63,0.1); transform: translateY(-2px); }
+        .dev-link:active { transform: scale(0.95); }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            opacity: 0.5;
+        }
+        .empty-state span { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+        .empty-state p { font-size: 0.85rem; }
     </style>
 </head>
 <body data-theme="light">
@@ -45,143 +483,292 @@
     <button class="theme-btn" onclick="toggleTheme()">🌓</button>
 
     <header>
-        <h1 class="animate">مسابقة المسيري</h1>
-        <p class="animate" style="color:white">نسخة عام 2024</p>
+        <h1>مسابقة المسيري</h1>
+        <p>✦ نسخة عام 2026 ✦</p>
     </header>
 
-    <div class="container animate">
+    <div class="container">
         <div id="adsArea"></div>
 
         <div class="main-card">
-            <div id="vHome">
+
+            <!-- HOME -->
+            <div id="vHome" class="view show">
+                <div class="home-title">
+                    <h3>أهلاً وسهلاً</h3>
+                    <p>اختر ما تريد القيام به</p>
+                </div>
                 <button class="btn-gold" onclick="nav('Reg')">تقديم طلب جديد 📝</button>
                 <button class="btn-gold btn-outline" onclick="nav('Track')">استعلام برقم الطلب 🔍</button>
                 <button class="btn-gold btn-outline" onclick="nav('Login')">دخول المتسابقين 🛡️</button>
             </div>
 
-            <div id="vReg" class="hidden">
+            <!-- REGISTRATION -->
+            <div id="vReg" class="view">
+                <h3 class="sec-title">تقديم طلب جديد</h3>
                 <input id="rn" placeholder="الاسم الرباعي للمتسابق">
                 <input id="rp" type="tel" placeholder="رقم واتساب التواصل">
                 <input id="rt" placeholder="اسم الشيخ المحفظ">
                 <input id="rd" placeholder="اسم الدار أو المسجد">
-                <input id="ra" placeholder="مستوى الحفظ الحالي">
-                <div style="font-size: 0.8rem; color: var(--gold); margin-bottom: 10px;">ارفق صورة شخصية واضحة</div>
+                <input id="ra" placeholder="مستوى الحفظ الحالي (مثل: 15 جزء)">
+                <span class="file-upload-label">📷 ارفق صورة شخصية واضحة</span>
                 <input type="file" id="ri" accept="image/*">
                 <button class="btn-gold" id="subBtn" onclick="hReg()">إرسال البيانات سحابياً 🚀</button>
-                <button class="btn-gold btn-outline" onclick="location.reload()">رجوع</button>
+                <button class="btn-gold btn-outline" onclick="nav('Home')">رجوع</button>
             </div>
 
-            <div id="vSuccess" class="hidden">
-                <div style="padding:20px; border:3px dashed var(--gold); border-radius:40px;">
-                    <h2 style="color:var(--gold)">تم التسجيل بنجاح!</h2>
-                    <p>رقم استعلامك (هام جداً):</p>
-                    <h1 id="showId" style="letter-spacing:5px; font-size:3rem;">------</h1>
+            <!-- SUCCESS -->
+            <div id="vSuccess" class="view">
+                <div class="success-box">
+                    <div style="font-size:3rem;margin-bottom:10px;">🎉</div>
+                    <h2>تم التسجيل بنجاح!</h2>
+                    <p>رقم استعلامك (احفظه جيداً)</p>
+                    <span class="success-id" id="showId">------</span>
+                    <button class="copy-btn" onclick="copyId()">📋 نسخ الرقم</button>
+                    <p style="margin-top:12px; font-size:0.75rem; opacity:0.6;">ستتمكن من متابعة حالة طلبك باستخدام هذا الرقم</p>
                 </div>
-                <button class="btn-gold" style="margin-top:20px" onclick="location.reload()">الرئيسية</button>
+                <button class="btn-gold" style="margin-top:20px" onclick="nav('Home')">العودة للرئيسية</button>
             </div>
 
-            <div id="vTrack" class="hidden">
+            <!-- TRACK -->
+            <div id="vTrack" class="view">
+                <h3 class="sec-title">استعلام عن الطلب</h3>
                 <input type="number" id="ti" placeholder="ادخل الرقم المكون من 6 أرقام">
-                <button class="btn-gold" onclick="hTrack()">البحث عن الحالة</button>
-                <div id="tRes" style="margin-top:20px; font-weight:bold;"></div>
-                <button class="btn-gold btn-outline" onclick="location.reload()">رجوع</button>
+                <button class="btn-gold" onclick="hTrack()">البحث عن الحالة 🔍</button>
+                <div id="tRes"></div>
+                <button class="btn-gold btn-outline" style="margin-top:10px" onclick="nav('Home')">رجوع</button>
             </div>
 
-            <div id="vLogin" class="hidden">
+            <!-- LOGIN -->
+            <div id="vLogin" class="view">
+                <h3 class="sec-title">دخول المتسابقين</h3>
                 <input id="ui" type="number" placeholder="رقم المستخدم">
                 <input id="pi" type="number" placeholder="كلمة المرور">
-                <button class="btn-gold" onclick="hLogin()">دخول للملف</button>
-                <button class="btn-gold btn-outline" onclick="location.reload()">رجوع</button>
+                <button class="btn-gold" onclick="hLogin()">دخول للملف الشخصي 🛡️</button>
+                <button class="btn-gold btn-outline" onclick="nav('Home')">رجوع</button>
             </div>
 
-            <div id="vProfile" class="hidden">
-                <img src="" id="uPh" class="u-photo">
-                <h2 id="uNm"></h2>
-                <div id="uChatArea" style="max-height:300px; overflow-y:auto; padding:10px;"></div>
-                <button class="btn-gold btn-outline" onclick="location.reload()">تسجيل الخروج</button>
+            <!-- PROFILE -->
+            <div id="vProfile" class="view">
+                <div class="profile-header">
+                    <img src="" id="uPh" class="u-photo">
+                    <div class="u-name" id="uNm"></div>
+                    <div id="uInfoRow" style="font-size:0.8rem;opacity:0.6;margin-top:4px;"></div>
+                </div>
+
+                <div class="parts-progress" id="partsProgressBox" style="display:none">
+                    <label>📖 مستوى الحفظ</label>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+                    </div>
+                    <div class="parts-text" id="partsText"></div>
+                </div>
+
+                <div class="chat-area" id="uChatArea"></div>
+                
+                <div class="chat-input-row">
+                    <button class="send-btn" onclick="sendMsg()">➤</button>
+                    <input id="msgInput" placeholder="اكتب رسالة للإدارة..." onkeydown="if(event.key==='Enter')sendMsg()">
+                </div>
+
+                <button class="btn-gold btn-outline" style="margin-top:15px" onclick="nav('Home')">تسجيل الخروج</button>
             </div>
+
         </div>
     </div>
 
-<script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyC1F8gKvyvyYYr0pYjIabhulUdP720_Eig",
-        authDomain: "my-chat-ad03e.firebaseapp.com",
-        databaseURL: "https://my-chat-ad03e-default-rtdb.firebaseio.com",
-        projectId: "my-chat-ad03e",
-        storageBucket: "my-chat-ad03e.firebasestorage.app",
-        messagingSenderId: "32351043149",
-        appId: "1:32351043149:web:e2dd0dd8654c1569cea604"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    let students = {};
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
 
+    <!-- Footer -->
+    <footer class="site-footer">
+        <p>تطوير وتصميم</p>
+        <div>
+            <a class="dev-link" href="https://wa.me/201556266190" target="_blank">👨‍💻 م. يوسف عبدالفتاح النجار</a>
+            <a class="dev-link" href="https://wa.me/201101234892" target="_blank">👨‍💻 م. يوسف غريب قميح</a>
+        </div>
+        <p style="margin-top:10px;font-size:0.7rem;opacity:0.5;">© 2026 جميع الحقوق محفوظة</p>
+    </footer>
+
+<script>
+    // ===== THEME =====
     function toggleTheme() {
         const b = document.body;
         b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     }
 
+    // ===== NAV =====
     function nav(v) {
-        document.querySelectorAll('.main-card > div').forEach(d=>d.classList.add('hidden'));
-        document.getElementById('v'+v).classList.remove('hidden');
+        document.querySelectorAll('.view').forEach(d => d.classList.remove('show'));
+        const el = document.getElementById('v' + v);
+        if (el) { el.classList.add('show'); }
     }
 
+    // ===== TOAST =====
+    function showToast(msg, duration = 3000) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), duration);
+    }
+
+    // ===== REALTIME LISTENER =====
     db.ref('/').on('value', s => {
         const data = s.val();
         students = data?.students || {};
-        const area = document.getElementById('adsArea'); area.innerHTML = "";
-        if(data?.ads) {
+
+        // Render ads
+        const area = document.getElementById('adsArea');
+        area.innerHTML = "";
+        if (data?.ads) {
             Object.values(data.ads).reverse().forEach(ad => {
-                area.innerHTML += `<div class="ad-card animate">${ad.img?`<img src="${ad.img}" class="ad-img">`:''}<div class="ad-body"><h3>${ad.title}</h3><p>${ad.desc}</p></div></div>`;
+                area.innerHTML += `<div class="ad-card">
+                    ${ad.img ? `<img src="${ad.img}" class="ad-img">` : ''}
+                    <div class="ad-body">
+                        <h3>${ad.title}</h3>
+                        ${ad.desc ? `<p>${ad.desc}</p>` : ''}
+                    </div>
+                </div>`;
             });
+        }
+
+        // Update chat if profile is open
+        if (currentStudentId && students[currentStudentId]) {
+            refreshChat(students[currentStudentId]);
         }
     });
 
+    // ===== REGISTER =====
     async function hReg() {
-        const n=document.getElementById('rn').value, p=document.getElementById('rp').value, i=document.getElementById('ri').files;
-        if(!n || !p) return alert('برجاء كتابة الاسم والرقم');
-        
-        const btn = document.getElementById('subBtn'); btn.innerText = "جاري الحفظ...⏳"; btn.disabled = true;
+        const n = document.getElementById('rn').value.trim();
+        const p = document.getElementById('rp').value.trim();
+        const t = document.getElementById('rt').value.trim();
+        const d = document.getElementById('rd').value.trim();
+        const a = document.getElementById('ra').value.trim();
+        const i = document.getElementById('ri').files;
+
+        if (!n || !p) return showToast('⚠️ برجاء كتابة الاسم ورقم الواتساب');
+
+        const btn = document.getElementById('subBtn');
+        btn.innerHTML = 'جاري الحفظ... <span class="spinner"></span>';
+        btn.disabled = true;
+
         const id = Math.floor(100000 + Math.random() * 900000);
         let img = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
         try {
-            if(i.length > 0) {
-                const fd = new FormData(); fd.append('image', i[0]);
-                const res = await fetch('https://api.imgbb.com/1/upload?key=7acb7d0d03189ae4b12c2924d296cc37', {method:'POST', body:fd});
-                const d = await res.json(); img = d.data.url;
+            if (i.length > 0) {
+                const fd = new FormData();
+                fd.append('image', i[0]);
+                const res = await fetch('https://api.imgbb.com/1/upload?key=7acb7d0d03189ae4b12c2924d296cc37', { method: 'POST', body: fd });
+                const dj = await res.json();
+                img = dj.data.url;
             }
-            await db.ref('students/'+id).set({
-                name:n, ph:p, teacher:document.getElementById('rt').value,
-                dar:document.getElementById('rd').value, parts:document.getElementById('ra').value,
-                photo:img, st:'P', chat:[{txt:'تم استقبال طلبك بنجاح ونحن الآن في مرحلة المراجعة.'}]
+            await db.ref('students/' + id).set({
+                name: n, ph: p, teacher: t, dar: d, parts: a,
+                photo: img, st: 'P',
+                regDate: new Date().toLocaleDateString('ar-EG'),
+                chat: [{ txt: 'تم استقبال طلبك بنجاح ✅ نحن الآن في مرحلة المراجعة، سيتم الرد قريباً.', time: now(), from: 'admin' }]
             });
             document.getElementById('showId').innerText = id;
+            window._lastId = id;
             nav('Success');
-        } catch(e) { alert('خطأ في الشبكة'); btn.disabled = false; }
+        } catch (e) {
+            showToast('❌ خطأ في الشبكة، حاول مرة أخرى');
+            btn.innerHTML = 'إرسال البيانات سحابياً 🚀';
+            btn.disabled = false;
+        }
     }
 
+    function copyId() {
+        const id = document.getElementById('showId').innerText;
+        navigator.clipboard.writeText(id).then(() => showToast('✅ تم نسخ الرقم'));
+    }
+
+    // ===== TRACK =====
     function hTrack() {
-        const s = students[document.getElementById('ti').value];
+        const val = document.getElementById('ti').value.trim();
         const res = document.getElementById('tRes');
-        if(s) {
-            if(s.st==='A') res.innerHTML = `<div style="color:#059669">مقبول ✅<br>اليوزر: ${s.user}<br>الباسورد: ${s.pass}</div>`;
-            else if(s.st==='R') res.innerHTML = `<div style="color:#dc2626">نعتذر، الطلب مرفوض ❌</div>`;
-            else res.innerHTML = `<div style="color:var(--gold)">تحت المراجعة ⏳</div>`;
-        } else alert('الرقم غير موجود');
+        const s = students[val];
+        if (!s) { res.innerHTML = `<div class="status-card status-rejected">❌ الرقم غير موجود</div>`; return; }
+
+        if (s.st === 'A') {
+            res.innerHTML = `<div class="status-card status-accepted">
+                ✅ تهانينا! تم قبول طلبك
+                <div class="creds">
+                    <div>👤 اليوزر: <b>${s.user}</b></div>
+                    <div>🔑 الباسورد: <b>${s.pass}</b></div>
+                </div>
+            </div>`;
+        } else if (s.st === 'R') {
+            res.innerHTML = `<div class="status-card status-rejected">❌ نعتذر، تم رفض الطلب</div>`;
+        } else {
+            res.innerHTML = `<div class="status-card status-pending">⏳ طلبك تحت المراجعة حالياً</div>`;
+        }
     }
 
+    // ===== LOGIN =====
     function hLogin() {
-        const u=document.getElementById('ui').value, p=document.getElementById('pi').value;
+        const u = document.getElementById('ui').value;
+        const p = document.getElementById('pi').value;
         const id = Object.keys(students).find(k => students[k].user == u && students[k].pass == p);
-        if(id) {
-            const s = students[id]; nav('Profile');
+
+        if (id) {
+            currentStudentId = id;
+            const s = students[id];
             document.getElementById('uPh').src = s.photo;
             document.getElementById('uNm').innerText = s.name;
-            const chatBox = document.getElementById('uChatArea'); chatBox.innerHTML = "";
-            (s.chat || []).forEach(m => chatBox.innerHTML += `<div class="msg-bubble animate">${m.txt}</div>`);
-        } else alert('بيانات خاطئة');
+            document.getElementById('uInfoRow').innerText = `📍 ${s.dar || ''} | 👨‍🏫 ${s.teacher || ''}`;
+
+            // Parts progress
+            if (s.parts) {
+                const num = parseInt(s.parts) || 0;
+                const pct = Math.min(Math.round((num / 30) * 100), 100);
+                document.getElementById('partsProgressBox').style.display = 'block';
+                document.getElementById('partsText').innerText = `${s.parts} من أصل 30 جزء`;
+                setTimeout(() => document.getElementById('progressFill').style.width = pct + '%', 200);
+            }
+
+            refreshChat(s);
+            nav('Profile');
+        } else {
+            showToast('❌ بيانات خاطئة، تحقق من اليوزر والباسورد');
+        }
+    }
+
+    function refreshChat(s) {
+        const chatBox = document.getElementById('uChatArea');
+        chatBox.innerHTML = "";
+        const msgs = s.chat || [];
+        if (msgs.length === 0) {
+            chatBox.innerHTML = `<div class="empty-state"><span>💬</span><p>لا توجد رسائل بعد</p></div>`;
+            return;
+        }
+        msgs.forEach(m => {
+            chatBox.innerHTML += `<div class="msg-bubble ${m.from === 'student' ? 'sent' : ''}">
+                ${m.txt}
+                ${m.time ? `<span class="msg-time">${m.time}</span>` : ''}
+            </div>`;
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMsg() {
+        const input = document.getElementById('msgInput');
+        const txt = input.value.trim();
+        if (!txt || !currentStudentId) return;
+
+        const s = students[currentStudentId];
+        const msgs = s.chat || [];
+        msgs.push({ txt, from: 'student', time: now() });
+
+        await db.ref('students/' + currentStudentId + '/chat').set(msgs);
+        input.value = '';
+        showToast('✅ تم إرسال رسالتك للإدارة');
+    }
+
+    function now() {
+        return new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
     }
 </script>
 </body>
